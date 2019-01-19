@@ -613,5 +613,94 @@ struct __iocb {
 #define IOCB_FORMAT      0xFE  /* format */
 
 
+/*****************************************************************************/
+/* Other Atari 8-bit OS Page 0 addresses                                     */
+/*****************************************************************************/
+
+/* Seems to be used to store VBLANK timer */
+#define LINZBS (*(unsigned int*)0x00)
+
+/* Cassette initialization vector
+** JSR through here if the cassette boot was successful.
+*/
+#define CASINI (*(unsigned int*)0x02)
+
+/* RAM pointer for the memory test used on powerup. Also used to
+** store the disk boot address--normally 1798 ($706)--for the
+** boot continuation routine.
+*/
+#define RAMLO (*(unsigned int*)0x04)
+
+/* Temporary Register for RAM size; used during powerup
+** sequence to test RAM availability. This value is then moved to
+** RAMTOP, location 106 ($6A). Reads one when the BASIC or the
+** A (left) cartridge is plugged in.
+*/
+#define TRAMSZ (*(unsigned char*)0x06)
+
+/* RAM test data register. Reads one when the B or the right
+** cartridge is inserted.
+*/
+#define TSTDAT (*(unsigned char*)0x07)
+
+/* Warmstart flag */
+#define WARMST (*(unsigned char*)0x08)
+#define WARMST_POWERUP 0x00
+#define WARMST_NORMAL  0xff
+
+/* Boot flag success indicator */
+#define BOOTQ /* "BOOT?" */ (*(unsigned char*)0x09)
+#define BOOTQ_NO_DEVICE 0
+#define BOOTQ_DISK      1
+#define BOOTQ_CASSETTE  2
+
+/* Start vector for disk (or non-cartridge) software. */
+#define DOSVEC (*(unsigned int*)0x0A)
+
+/* Initialization address for the disk boot. */
+#define DOSINI (*(unsigned int*)0x0C)
+
+/* Applications memory high limit and pointer. */
+#define APPMHI (*(unsigned int*)0x0E)
+
+
+/* Note: Locations 0x10 through 0x7F are cleared on either cold- or warmstart. */
+
+/* POKMSK 0x10; defined above */
+
+/* BREAK key status */
+#define BRKKEY (*(unsigned char*)0x11)
+#define BRKKEY_PRESSED  0
+#define BRKKEY_RELEASED 1
+
+/* Internal realtime clock. Increments every stage one VBLANK interrupt */
+#define RTCLOK_HI (*(unsigned char*)0x12)
+#define RTCLOK_MD (*(unsigned char*)0x13)
+#define RTCLOK_LO (*(unsigned char*)0x14)
+#define _rtclok (unsigned long)((((unsigned long)RTCLOK_HI) << 16) | (((unsigned int)RTCLOK_MD) << 8) | RTCLOK_LO)
+
+/* Indirect buffer address register (page zero).
+** Temporary pointer to the current disk buffer.
+*/
+#define BUFADR (*(unsigned int*)0x15)
+
+/* FIXME */
+
+/*****************************************************************************/
+/* Other Atari 8-bit OS Page 2 addresses                                     */
+/*****************************************************************************/
+/* FIXME */
+
+/*****************************************************************************/
+/* Other Atari 8-bit OS Page 3 addresses                                     */
+/*****************************************************************************/
+/* FIXME */
+
+/*****************************************************************************/
+/* Other Atari 8-bit OS Page 4 addresses                                     */
+/*****************************************************************************/
+/* FIXME */
+
+
 /* End of atari.h */
 #endif
