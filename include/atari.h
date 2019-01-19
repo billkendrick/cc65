@@ -493,7 +493,7 @@ extern void atrx15p2_tgi[];
 /* Shadow registers for hardware registers                                   */
 /*****************************************************************************/
 
-/* GTIA */
+/* GTIA shadows */
 #define STRIG0 (*(unsigned char*)0x284) /* TRIG0 */
 #define STRIG1 (*(unsigned char*)0x285) /* TRIG1 */
 #define STRIG2 (*(unsigned char*)0x286) /* TRIG2 */
@@ -509,7 +509,7 @@ extern void atrx15p2_tgi[];
 #define COLOR4 (*(unsigned char*)0x2C8) /* COLPBK */
 #define GPRIOR (*(unsigned char*)0x264) /* PRIOR */
 
-/* ANTIC */
+/* ANTIC shadows */
 #define SDMCTL (*(unsigned char*)0x22F) /* DMACTL */
 #define CHACT  (*(unsigned char*)0x2F3) /* CHACTL */
 #define SDLSTL (*(unsigned char*)0x230) /* DLISTL */
@@ -519,7 +519,7 @@ extern void atrx15p2_tgi[];
 #define LPENH  (*(unsigned char*)0x233) /* PENH */
 #define LPENV  (*(unsigned char*)0x234) /* PENV */
 
-/* POKEY */
+/* POKEY shadows */
 #define PADDL0 (*(unsigned char*)0x270) /* POT0 */
 #define PADDL1 (*(unsigned char*)0x271) /* POT1 */
 #define PADDL2 (*(unsigned char*)0x272) /* POT2 */
@@ -530,8 +530,9 @@ extern void atrx15p2_tgi[];
 #define PADDL7 (*(unsigned char*)0x277) /* POT7 */
 #define CH     (*(unsigned char*)0x2FC) /* KBCODE */
 #define POKMSK (*(unsigned char*)0x10)  /* IRQEN */
+#define SSKCTL (*(unsigned char*)0x232) /* SKCTL */
 
-/* PIA */
+/* PIA shadows */
 #define STICK0 (*(unsigned char*)0x278) /* PORTA for controller port 1 */
 #define STICK1 (*(unsigned char*)0x279) /* PORTA for controller port 2 */
 #define STICK2 (*(unsigned char*)0x27A) /* PORTB for controller port 3 */
@@ -570,22 +571,22 @@ struct __dcb {
 /*****************************************************************************/
 
 struct __iocb {
-    unsigned char handler;    /* handler index number (0xff free) */
-    unsigned char drive;      /* device number (drive) */
-    unsigned char command;    /* command */
-    unsigned char status;     /* status of last operation */
-    void          *buffer;    /* pointer to buffer */
-    void          *put_byte;  /* pointer to device's PUT BYTE routine */
-    unsigned int  buflen;     /* length of buffer */
-    unsigned char aux1;       /* 1st auxiliary byte */
-    unsigned char aux2;       /* 2nd auxiliary byte */
-    unsigned char aux3;       /* 3rd auxiliary byte */
-    unsigned char aux4;       /* 4th auxiliary byte */
-    unsigned char aux5;       /* 5th auxiliary byte */
-    unsigned char spare;      /* spare byte */
+    unsigned char handler;    /* ICHIDZ - handler index number (0xff denotes free) */
+    unsigned char drive;      /* ICDNOZ - device number (drive) */
+    unsigned char command;    /* ICCOMZ - command */
+    unsigned char status;     /* ICSTAZ - status of last operation */
+    void          *buffer;    /* ICBALZ/HZ - pointer to buffer */
+    void          *put_byte;  /* ICPTLZ/HZ - pointer to device's PUT BYTE routine */
+    unsigned int  buflen;     /* ICBLLZ/HZ - length of buffer */
+    unsigned char aux1;       /* ICAX1Z - 1st auxiliary byte */
+    unsigned char aux2;       /* ICAX2Z - 2nd auxiliary byte */
+    unsigned char aux3;       /* ICAX3Z - 3rd auxiliary byte */
+    unsigned char aux4;       /* ICAX4Z - 4th auxiliary byte */
+    unsigned char aux5;       /* ICAX5Z - 5th auxiliary byte */
+    unsigned char spare;      /* ICAX6Z aka CIOCHR - spare byte */
 };
 #define ZIOCB (*(struct __iocb *)0x20)  /* zero page IOCB */
-#define IOCB (*(struct __iocb *)0x340)  /* system IOCB buffers */
+#define IOCB (*(struct __iocb *)0x340)  /* system IOCB buffers (IOCB0 thru IOCB7) */
 
 /* IOCB Command Codes */
 #define IOCB_OPEN        0x03  /* open */
@@ -684,7 +685,118 @@ struct __iocb {
 */
 #define BUFADR (*(unsigned int*)0x15)
 
-/* FIXME */
+/* Command for CIO vector. */
+#define ICCOMT (*(unsigned char*)(0x17)
+
+/* FIXME - 0x18 thru 0x1F worth including? -bjk 2019.02.16 */
+
+/* Internal status storage. The SIO routines in ROM use this byte to
+** store the status of the current SIO operation.
+*/
+#define STATUS (*(unsigned char*)(0x30))
+
+/* Data frame checksum used by SIO */
+#define CHKSUM (*(unsigned char*)(0x31))
+
+/* Pointer to the data buffer, the contents of which are transmitted
+** during an I/O operation, used by SIO and the Device Control Block (DCB);
+** points to the byte to send or receive. (BUFRLO/HI)
+*/
+#define BUFR (*(unsigned int*)(0x32))
+
+/* Next byte past the end of the SIO and DCB data buffer (above). (BFENLO/HI) */
+#define BFEN (*(unsigned int*)(0x34))
+
+/* Number of command frame retries */
+#define CRETRY (*(unsigned char*)(0x36))
+
+/* Number of device retries */
+#define DRETRY (*(unsigned char*)(0x37))
+
+/* Data buffer full flag (0xff indicates full) */
+#define BUFRFL (*(unsigned char*)(0x38))
+
+/* Receive done flag (0xff indicates done) */
+#define RECVDN (*(unsigned char*)(0x39))
+
+/* Transmission done flag (0xff indicates done) */
+#define XMTDON (*(unsigned char*)(0x3a))
+
+/* Checksum sent flag (0xff indicates sent) */
+#define CHKSNT (*(unsigned char*)(0x3b))
+
+/* Flag for "no checksum follows data." (non-zero indicates no checksum follows) */
+#define NOCKSM (*(unsigned char*)(0x3c))
+
+/* Cassette buffer pointer */
+#define BPTR (*(unsigned char*)(0x3d))
+
+/* Inter-record gap type between cassette records */
+#define FTYPE (*(unsigned char*)(0x3e))
+
+/* Cassette end of file flag (non-zero indicates EOF reached) */
+#define FEOF (*(unsigned char*)(0x3f))
+
+/* Beep count retain register. Counts the number of beeps required
+** by the cassette handler during the OPEN command for play or
+** record operations; one beep for play, two for record.
+*/
+#define FREQ (*(unsigned char*)(0x40))
+
+/* Noisy I/O flag used by SIO to signal the beeping heard during
+** disk and cassette I/O. (Set to zero for silence)
+*/
+#define SOUNDR (*(unsigned char*)(0x41))
+
+/* Critical I/O region flag; defines the current operation as a time-
+** critical section when the value here is non-zero (causes only
+** stage one VBLANK to be processed)
+*/
+#define CRITIC (*(unsigned char*)(0x42))
+
+/* FIXME - 0x43 thru 0x48 worth including? -bjk 2019.02.16 */
+
+/* Disk I/O error number */
+#define ERRNO (*(unsigned char*)(0x49))
+
+/* FIXME - 0x4a thru 0x4b worth including? -bjk 2019.02.16 */
+
+/* Display status and keyboard register used by the display handler.
+** Also used to indicate memory is too small for the screen mode,
+** cursor out of range error, and the BREAK abort status.
+*/
+#define DSTAT (*(unsigned char*)(0x4c))
+
+/* Attract mode timer and flag (rotates colors via shadow registers,
+** to avoid screen burn-in, once it reaches 127). Reset to zero by
+** keypresses.
+*/
+#define ATRACT (*(unsigned char*)(0x4d))
+
+/* Dark attract mask; set to 254 (0xfe) for normal brightness when;
+** set to 246 (0xd6) to guarantee screen luminance not exceeding 50% .
+*/
+#define DRKMSK (*(unsigned char*)(0x4e))
+
+/* FIXME - 0x4f thru 0x51 worth including? -bjk 2019.02.16 */
+
+/* Bytes 0x50 to 0x7a) are used by the screen editor and display handler */
+
+/* Column of the left margin of text (GRAPHICS 0 or text window only);
+** 0 is leftmost; defaults to 2
+*/
+#define LMARGN (*(unsigned char*)(0x52))
+
+/* Column of the left margin of text (GRAPHICS 0 or text window only);
+** 39 is rightmost & default
+*/
+#define RMARGN (*(unsigned char*)(0x53))
+
+/* Current graphics or text screen cursor row, value ranging from zero to 191 */
+#define ROWCRS (*(unsigned char*)(0x54))
+
+/* Current graphics or text screen cursor column, value ranging from zero to 319 */
+#define COLCRS (*(unsigned int*)(0x55))
 
 /*****************************************************************************/
 /* Other Atari 8-bit OS Page 2 addresses                                     */
